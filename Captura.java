@@ -16,9 +16,6 @@ import org.jnetpcap.protocol.tcpip.*;
 import org.jnetpcap.protocol.network.*;
 import org.jnetpcap.nio.JBuffer;
 import org.jnetpcap.packet.Payload;
-import org.jnetpcap.protocol.network.Arp;
-import org.jnetpcap.protocol.network.Ip4;
-import org.jnetpcap.protocol.network.Icmp;
 import org.jnetpcap.protocol.lan.IEEE802dot2;
 import org.jnetpcap.protocol.lan.IEEE802dot3;
 
@@ -690,7 +687,7 @@ public class Captura {
                 break;
             }
             System.out.println("\t\tECN : "+mensaje);
-            System.out.println("\t\tLogitud: "+ip.length());
+            System.out.println("\t\tLogitud total: "+ip.length());
             System.out.printf("\t\tIdentificación: (0x%x) %d\n",ip.id(),ip.id());
             System.out.println("\t\tBandera Don't fragment: "+ip.flags_DF());
             System.out.println("\t\tBandera More fragment: "+ip.flags_MF());
@@ -701,6 +698,8 @@ public class Captura {
                 case 1: mensaje="ICMP";
                 break;
                 case 2: mensaje="IGMP";
+                break;
+                case 6: mensaje="TCP";
                 break;
                 default: mensaje="Sin indentificar";
                 break;
@@ -795,8 +794,6 @@ public class Captura {
                 break;
                 case 2: //IGMP
                     tamanio+=14;
-                    /*int hardwareType=(packet.getUByte(14)<<8)+packet.getUByte(15),
-            opcode=(packet.getUByte(20)<<8)+packet.getUByte(21);*/
                     int version = packet.getUByte(tamanio);
                     System.out.println("\t\t\t|-->Tipo de trama: IGMP");
                     switch(version){
@@ -841,6 +838,28 @@ public class Captura {
                         break;
                     }
                 break;
+                case 6:
+                    Tcp tcp = new Tcp();
+                    if(packet.hasHeader(tcp)){
+                        System.out.println("\t\t\t|-->Tipo de trama: TCP");
+                        System.out.println("\t\t\t\tPuerto de origen: "+tcp.source());
+                        System.out.println("\t\t\t\tPuerto de destino: "+tcp.destination());
+                        System.out.println("\t\t\t\tNúmero de secuencia: "+tcp.seq());
+                        System.out.println("\t\t\t\tNúmero de Reconocimiento: "+tcp.ack());
+                        System.out.println("\t\t\t\tLongitud del encabezado: "+(tcp.hlen()*4)+" bytes");
+                        System.out.println("\t\t\t\tCongestion Window Reduced (CWR): "+tcp.flags_CWR());
+                        System.out.println("\t\t\t\tECN-Echo (ECE): "+tcp.flags_ECE());
+                        System.out.println("\t\t\t\tUrgent (URG): "+tcp.flags_URG());
+                        System.out.println("\t\t\t\tAcknowledment (ACK): "+tcp.flags_ACK());
+                        System.out.println("\t\t\t\tPush (PSH): "+tcp.flags_PSH());
+                        System.out.println("\t\t\t\tReset (RST): "+tcp.flags_RST());
+                        System.out.println("\t\t\t\tSYN: "+tcp.flags_SYN());
+                        System.out.println("\t\t\t\tFIN: "+tcp.flags_FIN());
+                        System.out.println("\t\t\t\tWindow: "+tcp.window());
+                        System.out.printf("\t\t\t\tChecksum: 0x%x\n",tcp.checksum());
+                        System.out.println("\t\t\t\tPuntero urgente: "+tcp.urgent());
+                    }
+                break;
             }
         }
     }
@@ -859,7 +878,7 @@ public class Captura {
 
                 /////////////////////////lee archivo//////////////////////////
                 //String fname = "archivo.pcap";
-                String fname = "C:\\Users\\gata2\\Downloads\\IGMP.pcap";
+                String fname = "C:\\Users\\gata2\\Downloads\\TCP.pcap";
                 pcap = Pcap.openOffline(fname, errbuf);
                 if (pcap == null) {
                     System.err.printf("Error while opening device for capture: "+ errbuf.toString());
