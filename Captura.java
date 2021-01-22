@@ -588,14 +588,14 @@ public class Captura {
         }
         System.out.println("\t\tTipo de hardware: "+mensaje);
         System.out.printf(
-                "\t\tTipo de protocolo: %02X %02X\n", packet.getUByte(16),
+                "|-->Tipo de protocolo: %02X %02X\n", packet.getUByte(16),
                 packet.getUByte(17)
         );
         System.out.println(
-                "\t\tTamaño de la dirección de hardware (MAC): "+packet.getUByte(18)
+                "|-->Tamaño de la dirección de hardware (MAC): "+packet.getUByte(18)
         );
         System.out.println(
-                "\t\tTamaño de la dirección de software (IP): "+packet.getUByte(19)
+                "|-->Tamaño de la dirección de software (IP): "+packet.getUByte(19)
         );
         switch(opcode){
             case 1: mensaje="ARP Request";
@@ -619,24 +619,24 @@ public class Captura {
             default: mensaje="Otros";
             break;
         }
-        System.out.println("\t\tOp code: "+mensaje);
+        System.out.println("|-->Op code: "+mensaje);
         System.out.printf(
-                "\t\tDirección MAC del remitente: %02X:%02X:%02X:%02X:%02X:%02X\n",
+                "|-->Dirección MAC del remitente: %02X:%02X:%02X:%02X:%02X:%02X\n",
                 packet.getUByte(22), packet.getUByte(23), packet.getUByte(24),
                 packet.getUByte(25), packet.getUByte(26), packet.getUByte(27)
         );
         System.out.printf(
-                "\t\tDirección IP del remitente: %d.%d.%d.%d\n",
+                "|-->Dirección IP del remitente: %d.%d.%d.%d\n",
                 packet.getUByte(28), packet.getUByte(29), packet.getUByte(30),
                 packet.getUByte(31)
         );
         System.out.printf(
-                "\t\tDirección MAC del destinatario: %02X:%02X:%02X:%02X:%02X:%02X\n",
+                "|-->Dirección MAC del destinatario: %02X:%02X:%02X:%02X:%02X:%02X\n",
                 packet.getUByte(32), packet.getUByte(33), packet.getUByte(34),
                 packet.getUByte(35), packet.getUByte(36), packet.getUByte(37)
         );
         System.out.printf(
-                "\t\tDirección IP del destinatario: %d.%d.%d.%d\n",
+                "|-->Dirección IP del destinatario: %d.%d.%d.%d\n",
                 packet.getUByte(38), packet.getUByte(39), packet.getUByte(40),
                 packet.getUByte(41)
         );
@@ -797,9 +797,20 @@ public class Captura {
                                 packet.getUByte(9),packet.getUByte(10),packet.getUByte(11)
                         );
                         definirTipoTrama(longitud, packet);
+                    }else if(longitud==2054 ){    
+                                
+                                System.out.println("\n|-->Tipo de trama: ARP");
+                        
+                                System.out.printf("|-->MAC Destino: %02X:%02X:%02X:%02X:%02X:%02X",packet.getUByte(0),packet.getUByte(1),packet.getUByte(2),packet.getUByte(3),packet.getUByte(4),packet.getUByte(5));
+                                System.out.printf("\n");
+                                System.out.printf("|-->MAC Origen:  %02X:%02X:%02X:%02X:%02X:%02X",packet.getUByte(6),packet.getUByte(7),packet.getUByte(8),packet.getUByte(9),packet.getUByte(10),packet.getUByte(11));
+                                System.out.printf("\n");
+                             
+                                analizarProtocoloARP( packet);
+
                     }//else
-
-
+                    
+                    
                     //System.out.println("\n\nEncabezado: "+ packet.toHexdump());
 
 
@@ -827,3 +838,13 @@ public class Captura {
         }
     }
 }
+
+
+
+//cosas por agregar-------------------------------------------------------
+/*
+Establecer la cantidad de tramas a mostrar
+Exportar a archivo .pcap
+
+*/
+
