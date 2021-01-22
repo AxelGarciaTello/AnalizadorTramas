@@ -715,9 +715,79 @@ public class Captura {
             switch(protocolo){
                 case 1://ICMP
                     Icmp icmp = new Icmp();
-                    if(packet.hasHeader(ip)){
-
+                    if(packet.hasHeader(icmp)){
+                        tipo = icmp.type();
+                        int codigo = icmp.code();
+                        String mensajeTipo="";
+                        mensaje="";
+                        switch(tipo){
+                            case 0: mensajeTipo="Echo Reply";
+                            break;
+                            case 3: mensajeTipo="Destination Unreachable";
+                                    switch(codigo){
+                                        case 0: mensaje="Destination network unreachable";
+                                        break;
+                                        case 1: mensaje="Destination host unreachable";
+                                        break;
+                                        case 2: mensaje="Destination protocol unreachable";
+                                        break;
+                                        case 3: mensaje="Destination port unreachable";
+                                        break;
+                                        case 4: mensaje="Fragmentacion needed and DF flag set";
+                                        break;
+                                        case 5: mensaje="Source route failed";
+                                        break;
+                                    }
+                            break;
+                            case 5: mensajeTipo="Redirect Menssage";
+                                    switch(codigo){
+                                        case 0: mensaje="Redirect datagram for the Network";
+                                        break;
+                                        case 1: mensaje="Redirect datagram for the host";
+                                        break;
+                                        case 2: mensaje="Redirect datagram for the Type of Service and Network";
+                                        break;
+                                        case 3: mensaje="Redirect datagram for the Service and Host";
+                                        break;
+                                    }
+                            break;
+                            case 8: mensajeTipo="Echo Request";
+                            break;
+                            case 9: mensajeTipo="Router Advertisement";
+                            break;
+                            case 10: mensajeTipo="Router Solicitation";
+                            break;
+                            case 11: mensajeTipo="Time exceeded";
+                                     switch(codigo){
+                                         case 0: mensaje="Time to live exceeded in transit";
+                                         break;
+                                         case 1: mensaje="Fragment reassembly time exceeded";
+                                         break;
+                                     }
+                            break;
+                            case 12: mensajeTipo="Parameter Problem";
+                                     switch(codigo){
+                                         case 0: mensaje="Pointer indicates error";
+                                         break;
+                                         case 1: mensaje="Missing required option";
+                                         break;
+                                         case 2: mensaje="Bad length";
+                                         break;
+                                     }
+                            break;
+                            case 13: mensajeTipo="Timestamp";
+                            break;
+                            case 14: mensajeTipo="Timestamp Reply";
+                            break;
+                            default: mensajeTipo="Desconocido";
+                            break;
+                        }
+                        System.out.println("\t\t\t|-->Tipo de trama: ICMP");
+                        System.out.println("\t\t\t\tTipo: "+icmp.type()+" "+mensajeTipo);
+                        System.out.println("\t\t\t\tCódigo: "+icmp.code()+" "+mensaje);
+                        System.out.printf("\t\t\t\tChecksum: 0x%x\n",icmp.checksum());
                     }
+                break;
             }
         }
     }
@@ -736,7 +806,7 @@ public class Captura {
 
                 /////////////////////////lee archivo//////////////////////////
                 //String fname = "archivo.pcap";
-                String fname = "C:\\Users\\gata2\\Downloads\\arp.pcap";
+                String fname = "C:\\Users\\gata2\\Downloads\\ICMP.pcap";
                 pcap = Pcap.openOffline(fname, errbuf);
                 if (pcap == null) {
                     System.err.printf("Error while opening device for capture: "+ errbuf.toString());
