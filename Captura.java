@@ -36,7 +36,7 @@ public class Captura {
         }
         return buf.toString();
     }
-    
+
     public static void definirTipoTrama(int tipo, PcapPacket packet){
         String mensaje="";
         boolean bandera=true;
@@ -125,7 +125,9 @@ public class Captura {
             switch(tipo){
                 case 1536: mensaje="XEROX NS IDP";
                 break;
-                case 2048: mensaje="DOD IP";
+                case 2048: System.out.println("\n\t|-->Tipo de trama: IPv4"); /*Potocolo IP*/
+                           analizarProtocoloIP(packet);
+                           bandera=false;
                 break;
                 case 2049: mensaje="X.75 Internet";
                 break;
@@ -305,7 +307,7 @@ public class Captura {
             System.out.println("\n\t|-->Subtipo de trama: "+mensaje);
         }
     }
-    
+
     public static void identificarProtocolo(int sap){
         String mensaje="Procolo: ";
         if(sap==4 || sap==5 || sap==8 || sap==12){
@@ -343,7 +345,7 @@ public class Captura {
         }
         System.out.println("\t"+mensaje);
     }
-    
+
     public static void identificarCampoControl(int longitud,PcapPacket packet){
         int trama=0,
             tipo=0,
@@ -371,7 +373,7 @@ public class Captura {
                     System.out.println("\tSondeo");
                 }
                 else{
-                    System.out.println("\tBit final"); 
+                    System.out.println("\tBit final");
                 }
             }
             else{
@@ -401,7 +403,7 @@ public class Captura {
                         System.out.println("\tSondeo");
                     }
                     else{
-                        System.out.println("\tBit final"); 
+                        System.out.println("\tBit final");
                     }
                 }
                 else{
@@ -451,7 +453,7 @@ public class Captura {
                         System.out.println("\tSondeo");
                     }
                     else{
-                        System.out.println("\tBit final"); 
+                        System.out.println("\tBit final");
                     }
                 }
             }
@@ -471,7 +473,7 @@ public class Captura {
                     System.out.println("\tSondeo");
                 }
                 else{
-                    System.out.println("\tBit final"); 
+                    System.out.println("\tBit final");
                 }
             }
             else{
@@ -502,7 +504,7 @@ public class Captura {
                         System.out.println("\tSondeo");
                     }
                     else{
-                        System.out.println("\tBit final"); 
+                        System.out.println("\tBit final");
                     }
                 }
                 else{
@@ -552,7 +554,7 @@ public class Captura {
                         System.out.println("\tSondeo");
                     }
                     else{
-                        System.out.println("\tBit final"); 
+                        System.out.println("\tBit final");
                     }
                 }
             }
@@ -641,11 +643,89 @@ public class Captura {
                 packet.getUByte(41)
         );
     }
-    
+
+    public static void analizarProtocoloIP(PcapPacket packet){
+        Ip4 ip = new Ip4();
+        if(packet.hasHeader(ip)){
+            //Decodificación de pdu IP
+            String mensaje ="";
+            int protocolo = ip.type();
+            System.out.println("\t\tVersión: "+ip.version());
+            System.out.println("\t\tLongitud del encabezado: "+(ip.hlen()*4)+" bytes");
+            int servicios = ip.tos();
+            int CS = servicios>>>5;
+            switch(CS){
+                case 7: mensaje="Network Control";
+                break;
+                case 6: mensaje="Internetwork Control";
+                break;
+                case 5: mensaje="CRITIC/ECP";
+                break;
+                case 4: mensaje="Flash Override";
+                break;
+                case 3: mensaje="Flash";
+                break;
+                case 2: mensaje="Inmediate";
+                break;
+                case 1: mensaje="Priority";
+                break;
+                case 0: mensaje="Routine";
+                break;
+                default: mensaje="Sin indentificar";
+                break;
+            }
+            System.out.println("\t\tServicios diferenciados: "+mensaje);
+            int ECN = servicios & 3;
+            switch(ECN){
+                case 0: mensaje="Sin capacidad ECN";
+                break;
+                case 1: mensaje="Capacidad de transporte ECN(0)";
+                break;
+                case 2: mensaje="Capacidad de transporte ECN(0)";
+                break;
+                case 3: mensaje="Congestión encontrada";
+                break;
+            }
+            System.out.println("\t\tECN : "+mensaje);
+            System.out.println("\t\tLogitud: "+ip.length());
+            System.out.printf("\t\tIdentificación: (0x%x) %d\n",ip.id(),ip.id());
+            System.out.println("\t\tBandera Don't fragment: "+ip.flags_DF());
+            System.out.println("\t\tBandera More fragment: "+ip.flags_MF());
+            System.out.println("\t\tDesplazamiento de fragmento: "+ip.offset());
+            System.out.println("\t\tTiempo de vida: "+ip.ttl());
+            int tipo = ip.type();
+            switch(tipo){
+                case 1: mensaje="ICMP";
+                break;
+                default: mensaje="Sin indentificar";
+                break;
+            }
+            System.out.println("\t\tTipo: "+mensaje);
+            System.out.printf("\t\tChecksum: 0x%x\n", ip.checksum());
+            byte[] source = ip.source();
+            System.out.printf("\t\tDirección fuente:  %d.%d.%d.%d\n",
+                               source[0] & 0xFF,source[1] & 0xFF,
+                               source[2] & 0xFF,source[3] & 0xFF
+            );
+            byte[] destination = ip.destination();
+            System.out.printf("\t\tDirección destino: %d.%d.%d.%d\n",
+                               destination[0] & 0xFF, destination[1] & 0xFF,
+                               destination[2] & 0xFF, destination[3] & 0xFF
+            );
+            switch(protocolo){
+                case 1://ICMP
+                    Icmp icmp = new Icmp();
+                    if(packet.hasHeader(ip)){
+
+                    }
+            }
+        }
+    }
+
     public static void main(String[] args) {
         Pcap pcap=null;
         try{
-            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));   
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             List<PcapIf> alldevs = new ArrayList<PcapIf>(); // Will be filled with NICs
             StringBuilder errbuf = new StringBuilder(); // For any error msgs
             System.out.println("[0]-->Realizar captura de paquetes al vuelo");
@@ -653,7 +733,7 @@ public class Captura {
             System.out.print("\nElige una de las opciones:");
             int opcion = Integer.parseInt(br.readLine());
             if (opcion==1){
-                    
+
                 /////////////////////////lee archivo//////////////////////////
                 //String fname = "archivo.pcap";
                 String fname = "C:\\Users\\gata2\\Downloads\\arp.pcap";
@@ -662,7 +742,7 @@ public class Captura {
                     System.err.printf("Error while opening device for capture: "+ errbuf.toString());
                     return;
                 }//if
-            } 
+            }
             else if(opcion==0){
                 /***************************************************************************
                 * First get a list of devices on this system
@@ -797,20 +877,20 @@ public class Captura {
                                 packet.getUByte(9),packet.getUByte(10),packet.getUByte(11)
                         );
                         definirTipoTrama(longitud, packet);
-                    }else if(longitud==2054 ){    
-                                
+                    }else if(longitud==2054 ){
+
                                 System.out.println("\n|-->Tipo de trama: ARP");
-                        
+
                                 System.out.printf("|-->MAC Destino: %02X:%02X:%02X:%02X:%02X:%02X",packet.getUByte(0),packet.getUByte(1),packet.getUByte(2),packet.getUByte(3),packet.getUByte(4),packet.getUByte(5));
                                 System.out.printf("\n");
                                 System.out.printf("|-->MAC Origen:  %02X:%02X:%02X:%02X:%02X:%02X",packet.getUByte(6),packet.getUByte(7),packet.getUByte(8),packet.getUByte(9),packet.getUByte(10),packet.getUByte(11));
                                 System.out.printf("\n");
-                             
+
                                 analizarProtocoloARP( packet);
 
                     }//else
-                    
-                    
+
+
                     //System.out.println("\n\nEncabezado: "+ packet.toHexdump());
 
 
@@ -847,4 +927,3 @@ Establecer la cantidad de tramas a mostrar
 Exportar a archivo .pcap
 
 */
-
