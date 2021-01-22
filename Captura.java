@@ -39,6 +39,7 @@ public class Captura {
     
     public static void definirTipoTrama(int tipo, PcapPacket packet){
         String mensaje="";
+        boolean bandera=true;
         if(tipo<=1500){
             mensaje="Trama IEEE802.3 Length Field";
         }
@@ -138,6 +139,7 @@ public class Captura {
                 break;
                 case 2054: System.out.println("\n\t|-->Subtipo de trama: ARP");
                            analizarProtocoloARP(packet);
+                           bandera=false;
                 break;
                 case 2055: mensaje="XNS Compatability";
                 break;
@@ -299,7 +301,9 @@ public class Captura {
                 break;
             }
         }
-        System.out.println("\n\t|-->Subtipo de trama: "+mensaje);
+        if (bandera){
+            System.out.println("\n\t|-->Subtipo de trama: "+mensaje);
+        }
     }
     
     public static void identificarProtocolo(int sap){
@@ -652,7 +656,7 @@ public class Captura {
                     
                 /////////////////////////lee archivo//////////////////////////
                 //String fname = "archivo.pcap";
-                String fname = "C:\\Users\\gata2\\Downloads\\paquetes3.pcap";
+                String fname = "C:\\Users\\gata2\\Downloads\\arp.pcap";
                 pcap = Pcap.openOffline(fname, errbuf);
                 if (pcap == null) {
                     System.err.printf("Error while opening device for capture: "+ errbuf.toString());
@@ -756,7 +760,7 @@ public class Captura {
                         ssap=0,
                         cr=0;
                     int longitud = (packet.getUByte(12)*256)+packet.getUByte(13);
-                    System.out.printf("\nLongitud: %d (%04X)",longitud,longitud );
+                    System.out.printf("\n\nLongitud: %d (%04X)",longitud,longitud );
                     if(longitud<1500){
                         System.out.println("\n |--->Tipo de trama: IEEE802.3");
                         System.out.printf(" |-->MAC Destino: %02X:%02X:%02X:%02X:%02X:%02X",
