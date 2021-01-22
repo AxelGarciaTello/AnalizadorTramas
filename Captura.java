@@ -17,6 +17,8 @@ import org.jnetpcap.protocol.network.*;
 import org.jnetpcap.nio.JBuffer;
 import org.jnetpcap.packet.Payload;
 import org.jnetpcap.protocol.network.Arp;
+import org.jnetpcap.protocol.network.Ip4;
+import org.jnetpcap.protocol.network.Icmp;
 import org.jnetpcap.protocol.lan.IEEE802dot2;
 import org.jnetpcap.protocol.lan.IEEE802dot3;
 
@@ -651,7 +653,8 @@ public class Captura {
             String mensaje ="";
             int protocolo = ip.type();
             System.out.println("\t\tVersión: "+ip.version());
-            System.out.println("\t\tLongitud del encabezado: "+(ip.hlen()*4)+" bytes");
+            int tamanio = (ip.hlen()*4);
+            System.out.println("\t\tLongitud del encabezado: "+tamanio+" bytes");
             int servicios = ip.tos();
             int CS = servicios>>>5;
             switch(CS){
@@ -696,6 +699,8 @@ public class Captura {
             int tipo = ip.type();
             switch(tipo){
                 case 1: mensaje="ICMP";
+                break;
+                case 2: mensaje="IGMP";
                 break;
                 default: mensaje="Sin indentificar";
                 break;
@@ -788,6 +793,54 @@ public class Captura {
                         System.out.printf("\t\t\t\tChecksum: 0x%x\n",icmp.checksum());
                     }
                 break;
+                case 2: //IGMP
+                    tamanio+=14;
+                    /*int hardwareType=(packet.getUByte(14)<<8)+packet.getUByte(15),
+            opcode=(packet.getUByte(20)<<8)+packet.getUByte(21);*/
+                    int version = packet.getUByte(tamanio);
+                    System.out.println("\t\t\t|-->Tipo de trama: IGMP");
+                    switch(version){
+                        case 17: System.out.println("\t\t\t\tTipo: Membership Query (0x11)");
+                        break;
+                        case 18: System.out.println("\t\t\t\tTipo: IGMPv1 Membership Report (0x12)");
+                                 tamanio++;
+                                 System.out.printf("\t\t\t\tReservado: %02x\n",packet.getUByte(tamanio));
+                                 tamanio++;
+                                 System.out.printf("\t\t\t\tChecksum: 0x%02x%02x\n",
+                                         packet.getUByte(tamanio),packet.getUByte(tamanio+1)
+                                 );
+                        break;
+                        case 22: System.out.println("\t\t\t\tTipo: IGMPv2 Membership Report (0x16)");
+                                 tamanio++;
+                                 float tiempo = packet.getUByte(tamanio);
+                                 tiempo/=10;
+                                 System.out.printf("\t\t\t\tTiempo maximo de respuesta: %f sec (0x%02x)\n",
+                                         tiempo, packet.getUByte(tamanio)
+                                 );
+                                 tamanio++;
+                                 System.out.printf("\t\t\t\tChecksum: 0x%02x%02x\n",
+                                         packet.getUByte(tamanio),packet.getUByte(tamanio+1)
+                                 );
+                        break;
+                        case 34: System.out.println("\t\t\t\tTipo: IGMPv3 Membership Report (0x22)");
+                                 tamanio++;
+                                 System.out.printf("\t\t\t\tReservado: %02x\n",packet.getUByte(tamanio));
+                                 tamanio++;
+                                 System.out.printf("\t\t\t\tChecksum: 0x%02x%02x\n",
+                                         packet.getUByte(tamanio),packet.getUByte(tamanio+1)
+                                 );
+                                 tamanio+=2;
+                                 System.out.printf("\t\t\t\tReservado: %02x%02x\n",
+                                         packet.getUByte(tamanio),packet.getUByte(tamanio+1)
+                                 );
+                                 tamanio+=2;
+                                 int record = (packet.getUByte(tamanio)<<8)+packet.getUByte(tamanio+1);
+                                 System.out.println("\t\t\t\tNúmero de registros de grupo: "+record);
+                        break;
+                        case 23: System.out.println("\t\t\t\tTipo: Leave Group (0x17)");
+                        break;
+                    }
+                break;
             }
         }
     }
@@ -806,7 +859,7 @@ public class Captura {
 
                 /////////////////////////lee archivo//////////////////////////
                 //String fname = "archivo.pcap";
-                String fname = "C:\\Users\\gata2\\Downloads\\ICMP.pcap";
+                String fname = "C:\\Users\\gata2\\Downloads\\IGMP.pcap";
                 pcap = Pcap.openOffline(fname, errbuf);
                 if (pcap == null) {
                     System.err.printf("Error while opening device for capture: "+ errbuf.toString());
