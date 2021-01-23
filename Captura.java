@@ -878,6 +878,7 @@ public class Captura {
 
     public static void main(String[] args) {
         Pcap pcap=null;
+        int noTrama= -1;
         try{
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             List<PcapIf> alldevs = new ArrayList<PcapIf>(); // Will be filled with NICs
@@ -889,8 +890,8 @@ public class Captura {
             if (opcion==1){
 
                 /////////////////////////lee archivo//////////////////////////
-                //String fname = "archivo.pcap";
-                String fname = "C:\\Users\\gata2\\Downloads\\UDP.pcap";
+                System.out.print("Ruta y nombre del archivo con extención: ");
+                String fname = br.readLine();
                 pcap = Pcap.openOffline(fname, errbuf);
                 if (pcap == null) {
                     System.err.printf("Error while opening device for capture: "+ errbuf.toString());
@@ -926,6 +927,8 @@ public class Captura {
 
                 System.out.print("\nEscribe el número de interfaz a utilizar:");
                 int interfaz = Integer.parseInt(br.readLine());
+                System.out.print("\n¿Cuántas tramas quieres escuchar? ");
+                noTrama = Integer.parseInt(br.readLine());
                 PcapIf device = alldevs.get(interfaz); // We know we have atleast 1 device
                 System.out
                     .printf("\nChoosing '%s' on your behalf:\n",
@@ -1063,7 +1066,7 @@ public class Captura {
             * the loop method exists that allows the programmer to sepecify exactly
             * which protocol ID to use as the data link type for this pcap interface.
             **************************************************************************/
-            pcap.loop(-1, jpacketHandler, " ");
+            pcap.loop(noTrama, jpacketHandler, " ");
 
             /***************************************************************************
             * Last thing to do is close the pcap handle
