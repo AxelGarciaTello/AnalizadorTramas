@@ -8,6 +8,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jnetpcap.Pcap;
 import org.jnetpcap.PcapAddr;
 import org.jnetpcap.PcapIf;
+import org.jnetpcap.PcapDumper;
 import org.jnetpcap.packet.PcapPacket;
 import org.jnetpcap.packet.PcapPacketHandler;
 import org.jnetpcap.PcapBpfProgram;
@@ -989,6 +990,8 @@ public class Captura {
                 /****************/
             }//else if
 
+            String ofile = "traza_exportada.cap";
+            PcapDumper dumper = pcap.dumpOpen(ofile); // output file
             /***************************************************************************
              * Third we create a packet handler which will receive packets from the
              * libpcap loop.
@@ -1073,7 +1076,7 @@ public class Captura {
                         analizarProtocoloARP( packet);
                     }//else
                     System.out.println("--------------------------------------------------------------------------");
-
+                    dumper.dump(packet.getCaptureHeader(), packet);
 
                     //System.out.println("\n\nEncabezado: "+ packet.toHexdump());
 
@@ -1103,6 +1106,7 @@ public class Captura {
             /***************************************************************************
             * Last thing to do is close the pcap handle
             **************************************************************************/
+            dumper.close();
             pcap.close();
         }
         catch(IOException e){
@@ -1110,12 +1114,3 @@ public class Captura {
         }
     }
 }
-
-
-
-//cosas por agregar-------------------------------------------------------
-/*
-Establecer la cantidad de tramas a mostrar
-Exportar a archivo .pcap
-
-*/
