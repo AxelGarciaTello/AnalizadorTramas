@@ -701,6 +701,8 @@ public class Captura {
                 break;
                 case 6: mensaje="TCP";
                 break;
+                case 17: mensaje="UDP";
+                break;
                 default: mensaje="Sin indentificar";
                 break;
             }
@@ -860,6 +862,16 @@ public class Captura {
                         System.out.println("\t\t\t\tPuntero urgente: "+tcp.urgent());
                     }
                 break;
+                case 17:
+                    Udp udp = new Udp();
+                    if (packet.hasHeader(udp)){
+                        System.out.println("\t\t\t|-->Tipo de trama: UDP");
+                        System.out.println("\t\t\t\tPuerto de origen: "+udp.source());
+                        System.out.println("\t\t\t\tPuerto de destino: "+udp.destination());
+                        System.out.println("\t\t\t\tLongitud: "+udp.length());
+                        System.out.printf("\t\t\t\tChecksum: 0x%x\n",udp.checksum());
+                    }
+                break;
             }
         }
     }
@@ -878,7 +890,7 @@ public class Captura {
 
                 /////////////////////////lee archivo//////////////////////////
                 //String fname = "archivo.pcap";
-                String fname = "C:\\Users\\gata2\\Downloads\\TCP.pcap";
+                String fname = "C:\\Users\\gata2\\Downloads\\UDP.pcap";
                 pcap = Pcap.openOffline(fname, errbuf);
                 if (pcap == null) {
                     System.err.printf("Error while opening device for capture: "+ errbuf.toString());
@@ -1020,17 +1032,20 @@ public class Captura {
                         );
                         definirTipoTrama(longitud, packet);
                     }else if(longitud==2054 ){
-
-                                System.out.println("\n|-->Tipo de trama: ARP");
-
-                                System.out.printf("|-->MAC Destino: %02X:%02X:%02X:%02X:%02X:%02X",packet.getUByte(0),packet.getUByte(1),packet.getUByte(2),packet.getUByte(3),packet.getUByte(4),packet.getUByte(5));
-                                System.out.printf("\n");
-                                System.out.printf("|-->MAC Origen:  %02X:%02X:%02X:%02X:%02X:%02X",packet.getUByte(6),packet.getUByte(7),packet.getUByte(8),packet.getUByte(9),packet.getUByte(10),packet.getUByte(11));
-                                System.out.printf("\n");
-
-                                analizarProtocoloARP( packet);
-
+                        System.out.println("\n|-->Tipo de trama: ARP");
+                        System.out.printf("|-->MAC Destino: %02X:%02X:%02X:%02X:%02X:%02X",
+                                packet.getUByte(0),packet.getUByte(1),packet.getUByte(2),
+                                packet.getUByte(3),packet.getUByte(4),packet.getUByte(5)
+                        );
+                        System.out.printf("\n");
+                        System.out.printf("|-->MAC Origen:  %02X:%02X:%02X:%02X:%02X:%02X",
+                                packet.getUByte(6),packet.getUByte(7),packet.getUByte(8),
+                                packet.getUByte(9),packet.getUByte(10),packet.getUByte(11)
+                        );
+                        System.out.printf("\n");
+                        analizarProtocoloARP( packet);
                     }//else
+                    System.out.println("--------------------------------------------------------------------------");
 
 
                     //System.out.println("\n\nEncabezado: "+ packet.toHexdump());
