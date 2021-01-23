@@ -21,6 +21,14 @@ import org.jnetpcap.protocol.lan.IEEE802dot3;
 
 
 public class Captura {
+    private static int nETHERNET,
+                       nIEEE,
+                       nARP,
+                       nIP,
+                       nICMP,
+                       nIGMP,
+                       nTCP,
+                       nUDP;
 
     private static String asString(final byte[] mac) {
         final StringBuilder buf = new StringBuilder();
@@ -127,6 +135,7 @@ public class Captura {
                 case 2048: System.out.println("\n\t|-->Tipo de trama: IPv4"); /*Potocolo IP*/
                            analizarProtocoloIP(packet);
                            bandera=false;
+                           nIP++;
                 break;
                 case 2049: mensaje="X.75 Internet";
                 break;
@@ -141,6 +150,7 @@ public class Captura {
                 case 2054: System.out.println("\n\t|-->Subtipo de trama: ARP");
                            analizarProtocoloARP(packet);
                            bandera=false;
+                           nARP++;
                 break;
                 case 2055: mensaje="XNS Compatability";
                 break;
@@ -720,6 +730,7 @@ public class Captura {
             );
             switch(protocolo){
                 case 1://ICMP
+                    nICMP++;
                     Icmp icmp = new Icmp();
                     if(packet.hasHeader(icmp)){
                         tipo = icmp.type();
@@ -795,6 +806,7 @@ public class Captura {
                     }
                 break;
                 case 2: //IGMP
+                    nIGMP++;
                     tamanio+=14;
                     int version = packet.getUByte(tamanio);
                     System.out.println("\t\t\t|-->Tipo de trama: IGMP");
@@ -841,6 +853,7 @@ public class Captura {
                     }
                 break;
                 case 6:
+                    nTCP++;
                     Tcp tcp = new Tcp();
                     if(packet.hasHeader(tcp)){
                         System.out.println("\t\t\t|-->Tipo de trama: TCP");
@@ -863,6 +876,7 @@ public class Captura {
                     }
                 break;
                 case 17:
+                    nUDP++;
                     Udp udp = new Udp();
                     if (packet.hasHeader(udp)){
                         System.out.println("\t\t\t|-->Tipo de trama: UDP");
@@ -879,6 +893,14 @@ public class Captura {
     public static void main(String[] args) {
         Pcap pcap=null;
         int noTrama= -1;
+        nETHERNET = 0;
+        nIEEE = 0;
+        nARP = 0;
+        nIP = 0;
+        nICMP = 0;
+        nIGMP = 0;
+        nTCP = 0;
+        nUDP = 0;
         try{
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             List<PcapIf> alldevs = new ArrayList<PcapIf>(); // Will be filled with NICs
@@ -999,6 +1021,7 @@ public class Captura {
                     int longitud = (packet.getUByte(12)*256)+packet.getUByte(13);
                     System.out.printf("\n\nLongitud: %d (%04X)",longitud,longitud );
                     if(longitud<1500){
+                        nIEEE++;
                         System.out.println("\n |--->Tipo de trama: IEEE802.3");
                         System.out.printf(" |-->MAC Destino: %02X:%02X:%02X:%02X:%02X:%02X",
                                 packet.getUByte(0),packet.getUByte(1),packet.getUByte(2),
@@ -1024,6 +1047,7 @@ public class Captura {
                         identificarCampoControl(longitud, packet);
                     }
                     else if(longitud>=1500){
+                        nETHERNET++;
                         System.out.println("\n |-->Tipo de trama: ETHERNET");
                         System.out.printf(" |-->MAC Destino: %02X:%02X:%02X:%02X:%02X:%02X",
                                 packet.getUByte(0),packet.getUByte(1),packet.getUByte(2),
@@ -1057,7 +1081,6 @@ public class Captura {
                 }
             };
 
-
             /***************************************************************************
             * Fourth we enter the loop and tell it to capture 10 packets. The loop
             * method does a mapping of pcap.datalink() DLT value to JProtocol ID, which
@@ -1067,6 +1090,15 @@ public class Captura {
             * which protocol ID to use as the data link type for this pcap interface.
             **************************************************************************/
             pcap.loop(noTrama, jpacketHandler, " ");
+            System.out.println("Número de tramas capturadas: "+(nIEEE+nETHERNET));
+            System.out.println("   IEEE: "+nIEEE);
+            System.out.println("   Ethernet: "+nETHERNET);
+            System.out.println("      ARP: "+nARP);
+            System.out.println("      IP: "+nIP);
+            System.out.println("         ICMP: "+nICMP);
+            System.out.println("         IGMP: "+nIGMP);
+            System.out.println("         TCP: "+nTCP);
+            System.out.println("         UDP: "+nUDP);
 
             /***************************************************************************
             * Last thing to do is close the pcap handle
